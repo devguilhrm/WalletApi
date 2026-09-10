@@ -33,4 +33,5 @@ build/
 .vscode/
 
 ### docs ###
+/docs/doc-01
 /docs/

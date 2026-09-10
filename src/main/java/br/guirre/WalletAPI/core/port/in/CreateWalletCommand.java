@@ -1,6 +1,7 @@
 package br.guirre.WalletAPI.core.port.in;
 
-import java.util.Currency;
-import java.util.UUID;
+import br.guirre.WalletAPI.core.domain.OwnerId;
 
-public record CreateWalletCommand(UUID ownerId, Currency currency) { }
+import java.util.Currency;
+
+public record CreateWalletCommand(OwnerId ownerId, Currency currency) { }
