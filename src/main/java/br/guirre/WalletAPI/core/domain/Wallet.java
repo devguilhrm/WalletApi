@@ -2,6 +2,7 @@ package br.guirre.WalletAPI.core.domain;
 
 import java.time.OffsetDateTime;
 import java.util.Currency;
+import java.util.Objects;
 import java.util.UUID;
 
 public final class Wallet {
@@ -14,26 +15,41 @@ public final class Wallet {
     private OffsetDateTime closedAt;
 
 
-    private Wallet(OwnerId ownerId, WalletId id, Currency currency, WalletStatus status,
+    private Wallet( WalletId id,OwnerId ownerId, Currency currency, WalletStatus status,
                    long version, OffsetDateTime createdAt, OffsetDateTime closedAt) {
-        this.ownerId = ownerId;
-        this.id = id;
-        this.currency = currency;
-        this.status = status;
+        this.id = Objects.requireNonNull(id, "id cannot be null");
+        this.ownerId = Objects.requireNonNull(ownerId, "ownerid cannot be null");
+        this.currency = Objects.requireNonNull(currency, "currency cannot be null");
+        this.status = Objects.requireNonNull(status, "status cannot be null");
         this.version = version;
-        this.createdAt = createdAt;
+        this.createdAt = Objects.requireNonNull(createdAt, "createdAt cannot be null");
         this.closedAt = closedAt;
+
+        ValidadeInvariants();
     }
 
 
     public static Wallet create(OwnerId ownerId, Currency currency) {
-        return new Wallet(ownerId, new WalletId(UUID.randomUUID()), currency,
-                WalletStatus.ACTIVE, 0L, OffsetDateTime.now(), null);
+        return new Wallet(
+                new WalletId(UUID.randomUUID()),
+                ownerId,
+                currency,
+                WalletStatus.ACTIVE,
+                0L,
+                OffsetDateTime.now(),
+                null
+        );
     }
 
-    public static Wallet restore(WalletId id, OwnerId ownerId, Currency currency, WalletStatus status,
-                                 long version, OffsetDateTime createdAt, OffsetDateTime closedAt) {
-        return new Wallet(ownerId, id, currency, status, version, createdAt, closedAt);
+    public static Wallet restore(WalletId id,
+                                 OwnerId ownerId,
+                                 Currency currency,
+                                 WalletStatus status,
+                                 long version,
+                                 OffsetDateTime createdAt,
+                                 OffsetDateTime closedAt) {
+
+        return new Wallet(id,ownerId, currency, status, version, createdAt, closedAt);
     }
 
 
@@ -44,4 +60,23 @@ public final class Wallet {
     public long getVersion() { return version; }
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public OffsetDateTime getClosedAt() { return closedAt; }
+
+
+    private void ValidadeInvariants() {
+        if (version < 0) {
+            throw new IllegalArgumentException("version cannot be less than zero");
+        }
+        if (status == WalletStatus.CLOSED && closedAt == null) {
+            throw new IllegalArgumentException("An closed wallet needs to have a closedat");
+        }
+        if(status != WalletStatus.CLOSED && closedAt != null) {
+            throw new IllegalArgumentException("Only a closed wallet have a closedAt time");
+        }
+        if(closedAt != null && closedAt.isBefore(createdAt)) {
+            throw new IllegalArgumentException("Invalid closed time");
+        }
+    }
+
+
+
 }
